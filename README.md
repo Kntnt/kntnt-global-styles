@@ -7,16 +7,8 @@
 WordPress plugin that manages a global CSS file editable in the block editor.
 
 > [!NOTE]
-> **For WordPress Users:** [Download the ready-to-use plugin](https://github.com/Kntnt/kntnt-global-styles/releases/latest/download/kntnt-global-styles.zip) and [install](#installation) it via WordPress admin. **Do not** download the entire repository.
-
-> [!TIP]
-> **For Developers:** [Build](#building-from-source-for-developers) the plugin yourself::
-> ```bash
-> git clone https://github.com/Kntnt/kntnt-global-styles.git
-> cd kntnt-global-styles
-> npm install
-> npm run build
-> ```
+> **For WordPress Users:** [Install](#installation) the [the ready-to-use plugin](https://github.com/Kntnt/kntnt-global-styles/releases/latest/download/kntnt-global-styles.zip).\
+> **For Developers:** [Build](#building-from-source-for-developers) the plugin yourself.
 
 ## Description
 
