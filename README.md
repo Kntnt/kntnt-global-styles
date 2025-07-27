@@ -292,19 +292,47 @@ kntnt-global-styles/
 
 ### Updating Dependencies
 
-To check if there are newer versions of the dependencies:
+> [!NOTE]
+> After installing updated dependencies, always rebuild the project assets:
+> `npm run build`
+
+#### Check for Outdated Packages
+
+To see which packages can be updated, run:
 
 ```bash
 npm outdated
 ```
 
-To update dependencies:
+This command is read-only and does not modify any files.
+
+#### Safe, Incremental Update
+
+To update packages to the latest versions allowed by the SemVer ranges in `package.json` (i.e., no major versions with breaking changes), run:
 
 ```bash
 npm update
 ```
 
-**Important:** After updating dependencies, you must run the build command again: `npm run build`.
+This command updates your `package-lock.json` and `node_modules`, but does not change `package.json`.
+
+#### Full Upgrade to Latest Versions
+
+To upgrade all packages to their latest available versions, including major ones:
+
+**Step 1: Update `package.json`**
+
+```bash
+npx npm-check-updates -u
+```
+
+**Step 2: Install updated packages**
+
+```bash
+npm install
+```
+
+This workflow modifies `package.json` and is used for major upgrades, which may require code changes.
 
 ### Troubleshooting
 
