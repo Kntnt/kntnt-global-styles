@@ -1,0 +1,40 @@
+{
+  "name": "kntnt-global-styles",
+  "version": "2.3.0",
+  "private": true,
+  "description": "Creates and manages a global CSS file editable through the WordPress admin interface.",
+  "author": "Thomas Barregren",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "dist": "NODE_ENV=production wp-scripts build && node scripts/build.js",
+    "clean": "rm -rf js/ dist/",
+    "lint": "wp-scripts lint-js",
+    "format": "wp-scripts format-js"
+  },
+  "devDependencies": {
+    "@wordpress/components": "^30.0.0",
+    "@wordpress/data": "^10.27.0",
+    "@wordpress/edit-post": "^8.27.0",
+    "@wordpress/element": "^6.27.0",
+    "@wordpress/icons": "^10.27.0",
+    "@wordpress/plugins": "^7.27.0",
+    "@wordpress/scripts": "^30.20.0",
+    "archiver": "^7.0.0",
+    "fs-extra": "^11.2.0",
+    "terser": "^5.34.0"
+  },
+  "browserslist": [
+    "extends @wordpress/browserslist-config"
+  ],
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "css",
+    "styles",
+    "global",
+    "editor",
+    "block-editor"
+  ]
+}
