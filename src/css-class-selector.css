@@ -1,0 +1,172 @@
+/**
+ * CSS Class Selector Component Styles
+ *
+ * Styles for the custom CSS class selector component that replaces the
+ * default WordPress "Additional CSS class(es)" field. Includes utility
+ * classes for hiding the original control and comprehensive styling
+ * for the react-select component integration.
+ */
+
+/* --- Utility Classes --- */
+
+/**
+ * Utility class to hide the original WordPress CSS control.
+ * Applied via JavaScript to remove the core control from the editor UI.
+ */
+.kntnt-global-styles-hidden {
+  display: none !important;
+}
+
+/* --- CSS Class Selector Component --- */
+
+/**
+ * Main wrapper for the CSS class selector component.
+ * Provides consistent spacing within the Global Styles panel.
+ */
+.kntnt-global-styles-class-selector-wrapper {
+  margin-bottom: 16px;
+}
+
+/**
+ * Label styling for the CSS class selector.
+ * Maintains consistency with WordPress admin interface standards.
+ */
+.kntnt-global-styles-class-selector-wrapper .components-base-control__label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/**
+ * Help text styling below the CSS class selector.
+ * Provides additional guidance about the class selection interface.
+ */
+.kntnt-global-styles-class-selector-wrapper .components-base-control__help {
+  font-size: 12px;
+  font-style: italic;
+  color: #50575e;
+  margin-top: 8px !important;
+}
+
+/* --- React Select Styling (CreatableSelect) --- */
+/* Note: !important used to override react-select's inline styles */
+
+/**
+ * Main control container for the select component.
+ * Styled to match WordPress admin interface color scheme and dimensions.
+ */
+.kntnt-global-styles-select__control {
+  border-color: #8c8f94 !important;
+  box-shadow: none !important;
+  min-height: 30px !important;
+}
+
+/**
+ * Focused state styling for the select control.
+ * Uses WordPress admin blue color for consistency with other form controls.
+ */
+.kntnt-global-styles-select__control--is-focused {
+  border-color: #2271b1 !important;
+  box-shadow: 0 0 0 1px #2271b1 !important;
+}
+
+/**
+ * Container for selected value tags and input field.
+ * Compact padding for efficient use of panel space.
+ */
+.kntnt-global-styles-select__value-container {
+  padding: 0 4px !important;
+}
+
+/**
+ * Individual tag styling for selected CSS classes.
+ * Light gray background with rounded corners for visual distinction.
+ */
+.kntnt-global-styles-select__multi-value {
+  background-color: #f0f0f1 !important;
+  margin: 2px !important;
+  border-radius: 3px !important;
+}
+
+/**
+ * Text label within each selected class tag.
+ * Small font size for compact display within the panel.
+ */
+.kntnt-global-styles-select__multi-value__label {
+  color: #1d2327 !important;
+  font-size: 12px !important;
+  padding: 2px 6px !important;
+}
+
+/**
+ * Remove button styling for selected class tags.
+ * Provides clear hover feedback with WordPress danger color.
+ */
+.kntnt-global-styles-select__multi-value__remove:hover {
+  background-color: #d63638 !important;
+  color: #fff !important;
+}
+
+/**
+ * Text input field styling within the select component.
+ * Removes default browser styling for consistent appearance.
+ */
+.kntnt-global-styles-select__input {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/**
+ * Indicator separator between select controls.
+ * Hidden to maintain cleaner interface design.
+ */
+.kntnt-global-styles-select__indicator-separator {
+  display: none !important;
+}
+
+/**
+ * Clear all indicator styling.
+ * Hidden to simplify the user interface.
+ */
+.kntnt-global-styles-select__clear-indicator {
+  display: none !important;
+}
+
+/**
+ * Dropdown menu container for class suggestions.
+ * High z-index ensures visibility above WordPress admin interface elements.
+ */
+.kntnt-global-styles-select__menu {
+  z-index: 9999 !important;
+}
+
+/* --- Custom Option Styling --- */
+
+/**
+ * Main container for a custom-rendered option in the dropdown menu.
+ * Provides consistent padding for better visual spacing.
+ */
+.kntnt-global-styles-select__option {
+  padding: 4px 0;
+}
+
+/**
+ * Styling for the class name within a dropdown option.
+ * Bold text to emphasize the primary information (class name).
+ */
+.kntnt-global-styles-select__option-name {
+  font-weight: bold;
+  display: block;
+  line-height: 1.2;
+}
+
+/**
+ * Styling for the class description within a dropdown option.
+ * Smaller italic text below the class name for additional context.
+ */
+.kntnt-global-styles-select__option-desc {
+  font-size: 12px;
+  font-style: italic;
+  color: #50575e; /* Matches WordPress help text color */
+  display: block;
+  margin-top: 2px;
+}

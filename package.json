@@ -1,40 +1,21 @@
 {
   "name": "kntnt-global-styles",
-  "version": "2.3.0",
-  "private": true,
-  "description": "Creates and manages a global CSS file editable through the WordPress admin interface.",
-  "author": "Thomas Barregren",
-  "license": "GPL-2.0-or-later",
+  "version": "1.1.0",
+  "description": "Manages a global CSS file editable in the block editor.",
+  "main": "js/index.js",
   "scripts": {
-    "build": "wp-scripts build",
-    "start": "wp-scripts start",
-    "dist": "NODE_ENV=production wp-scripts build && node scripts/build.js",
-    "clean": "rm -rf js/ dist/",
-    "lint": "wp-scripts lint-js",
-    "format": "wp-scripts format-js"
+    "start": "wp-scripts start --webpack-src-dir=src",
+    "build": "wp-scripts build --webpack-src-dir=src && mv js/*.css css/ 2>/dev/null || true",
+    "makepot": "wp i18n make-pot . languages/kntnt-global-styles.pot",
+    "create-dist": "mkdir -p dist/kntnt-global-styles && cp -r classes css js languages *.php dist/kntnt-global-styles/ && cd dist && zip -r kntnt-global-styles.zip kntnt-global-styles/",
+    "dist": "npm run clean && npm run build && npm run makepot && npm run create-dist",
+    "clean": "rm -rf js/ css/ dist/"
   },
   "devDependencies": {
-    "@wordpress/components": "^30.0.0",
-    "@wordpress/data": "^10.27.0",
-    "@wordpress/edit-post": "^8.27.0",
-    "@wordpress/element": "^6.27.0",
-    "@wordpress/icons": "^10.27.0",
-    "@wordpress/plugins": "^7.27.0",
-    "@wordpress/scripts": "^30.20.0",
-    "archiver": "^7.0.0",
-    "fs-extra": "^11.2.0",
-    "terser": "^5.34.0"
+    "@wordpress/scripts": "^30.20.0"
   },
-  "browserslist": [
-    "extends @wordpress/browserslist-config"
-  ],
-  "keywords": [
-    "wordpress",
-    "plugin",
-    "css",
-    "styles",
-    "global",
-    "editor",
-    "block-editor"
-  ]
+  "dependencies": {
+    "@wordpress/commands": "^1.27.0",
+    "react-select": "^5.10.2"
+  }
 }

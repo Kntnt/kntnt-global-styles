@@ -1,7 +1,7 @@
 # Kntnt Global Styles
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPLv2+-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Requires PHP: 8.2+](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net)
+[![Requires PHP: 8.3+](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net)
 [![Requires WordPress: 6.8+](https://img.shields.io/badge/WordPress-6.8+-blue.svg)](https://wordpress.org)
 
 WordPress plugin that manages a global CSS file editable in the block editor.
@@ -12,21 +12,50 @@ WordPress plugin that manages a global CSS file editable in the block editor.
 
 ## Description
 
-Kntnt Global Styles provides a powerful yet simple way to add custom CSS to your WordPress site directly through the block editor. The plugin creates a dedicated sidebar panel where you can write, edit, and save CSS that applies site-wide, with live preview functionality that shows your changes immediately in the editor.
+Modern WordPress site builders like Oxygen and Bricks have popularized a "class-first" workflow. This approach allows developers and designers to create a system of reusable CSS classes (often called "global styles" or "utility classes") that can be applied to elements to ensure design consistency and dramatically speed up development. This powerful functionality, however, is typically confined to the ecosystem of a specific builder or product.
 
-Perfect for theme customization, quick design fixes, and adding custom styles without modifying theme files. All CSS is safely stored in the database and automatically generated as an optimized file for fast frontend loading.
+Kntnt Global Styles is a lightweight plugin designed to bring this same, proven methodology to the native WordPress block editor. Its purpose is to provide a centralized system for managing a global stylesheet and applying its classes to *any* block—whether it's a core WordPress block or one added by a third-party plugin. It achieves this by replacing the default "Additional CSS class(es)" field with a more capable and user-friendly interface.
 
-### Key Features:
+## Why use this plugin?
 
-- **Block Editor Integration**: Native sidebar panel in the WordPress block editor
-- **Live Preview**: See your CSS changes instantly while editing posts and pages
-- **Dual Editor Modes**: Compact sidebar editor and full-screen modal for larger projects
-- **Automatic Optimization**: CSS is minified and cached for optimal performance
-- **Static File Performance**: CSS saved as optimized static file for fast loading and cache compatibility
-- **Theme Independent**: Your custom styles remain active even if you switch themes
-- **Developer Friendly**: Hooks and filters for extending functionality
-- **Accessibility Ready**: Full keyboard navigation and screen reader support
-- **Internationalization**: Ready for translation into any language
+### For designers and developers
+
+- **Efficiency**: Create reusable CSS classes once and apply them anywhere in your site. No more copying and pasting the same styles or hunting through theme files.
+- **Consistency**: Maintain design consistency across your entire site with a centralized style system that works with any block or theme.
+- **Workflow**: Adopt the proven "utility-first" approach used by modern frameworks like Tailwind CSS, but within the familiar WordPress block editor.
+
+### For site performance
+
+- **Speed**: CSS is served as a static, cached file rather than inline styles, improving page load times and reducing server overhead.
+- **Optimization**: Automatic minification ensures your styles are delivered efficiently without manual optimization.
+
+### For site management
+
+- **Theme independence**: Your styles survive theme changes, updates, and switching between themes—no more lost customizations.
+- **Future-proof**: Works with any WordPress theme and all block types, including third-party plugins and future WordPress updates.
+- **No vendor lock-in**: Unlike page builders, your styles remain accessible as standard CSS that works everywhere.
+- **Accessibility**: Built with accessibility in mind, supporting keyboard navigation and screen readers.
+
+### Compared to alternatives
+
+- **vs. Customizer's Additional CSS**: Better performance, theme independence, and organized class management
+- **vs. Page builders**: Standard CSS without proprietary markup, works with any theme, lighter weight
+- **vs. Manual theme editing**: No risk of losing changes during theme updates, works across multiple themes
+
+## Core functionality
+
+The plugin introduces two core functionalities to the block editor:
+
+* An enhanced input field on every block for applying classes.
+* A central CSS editor for managing a single, site-wide stylesheet.
+
+While designed to work in tandem—defining styles in the central editor and applying them via the input field—these two features also offer significant flexibility by working independently.
+
+The class input field is not restricted to suggested classes; you can add any CSS class name directly, just as you would with the standard WordPress "Additional CSS class(es)" field. The interface works with any block—whether it's a core WordPress block, one added by a third-party plugin, or custom blocks. Conversely, you have full control over which classes within the global stylesheet appear as suggestions by using the @hint annotation. For advanced integration, developers can also use a filter to programmatically add or remove classes from the suggestion list.
+
+All CSS managed by the plugin is stored in the database and also saved as a minified, static .css file for optimal performance. This file is loaded in the editor and on the front end, ensuring styles are applied consistently.
+
+The plugin's functionality is theme-independent. The defined global styles will persist and remain active even if the site's theme is changed.
 
 ## Installation
 
@@ -37,276 +66,247 @@ Perfect for theme customization, quick design fixes, and adding custom styles wi
 
 ## Usage
 
-You can edit your global styles directly from within the block editor.
+### 1\. Applying Classes to a Block
 
-Click the brush icon in the editor's top-right toolbar to open the **Global Styles** sidebar. A panel titled **CSS Editor** will appear with a field where you can write your custom CSS.
+When a block is selected in the editor, the plugin adds a new *Global Styles* panel to the settings sidebar (also known as the block inspector).
 
-If you prefer a larger editing window, click the **Larger Editor** button below the text area. This will open the editor in a full-size modal dialog.
+Add a class by selecting from the drop-down list that appears when you click the arrow to the right, or start typing the name of a class in the list. You can also type the full name of any class and press Enter or Tab to finish.
 
-When you click the **Save** button, your CSS is applied instantly to both the editor preview and your live site.
+Remove a class by clicking on the `×` after the class name.
 
-### Applying Your Styles
+### 2\. The Global Style Editor
 
-You can apply your custom CSS classes to any block using the standard WordPress method.
+All global styles can be edited in the Global Style Editor. There are four ways to open it:
 
-1.  Create a CSS class in the **Global Styles** editor. For example:
-    ```css
-    .highlight {
-      background-color: #f0f8ff;
-      border-left: 4px solid #0073aa;
-      padding: 1rem;
-    }
-    ```
-2.  Select the block you want to style in the editor.
-3.  In the block settings sidebar on the right, open the **Advanced** section.
-4.  In the **"Additional CSS class(es)"** field, type your class name without the leading dot (e.g., `highlight`).
+1. With a block selected, click the *Edit Global Styles* link in the *Global Styles* panel of the inspector.
+2. Select *Edit Global Styles* i the *More tools & options menu* (displayed when you click on the three vertical dots in the upper right corner)
+3. Use the keyboard shortcut <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd> on Mac and <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd> on Linux and Windows.
+4. Open the command palette (<kbd>Command</kbd> + <kbd>K</kbd> on Mac and <kbd>Ctrl</kbd> + <kbd>K</kbd> on Linux and Windows) and start type one of the words ”global”, ”style”, and ”editor” and select *Open Global Style Editor*.
 
-The styles will now be applied to the selected block.
+To control which classes appear in the dropdown list, a specific comment annotation, `@hint`, must be used in the CSS code. The annotation must be on its own line within a comment. The start of a comment (`/*`), the continuation of a comment (`*`), and the end of a comment (`*/`), as well as surrounding spaces, are allowed on the line. After `@hint`, specify the name of a class. Optionally, you can add a vertical bar (`|`), followed by a description that will appear next to the class name in the drop-down list. Leading and trailing spaces are trimmed.
 
-## CSS Annotations
+You can place comments with annotations anywhere. However, we recommend collecting them all in an introductory comment or placing them next to the relevant style rule.
 
-The CSS Annotations feature allows your custom global styles to become discoverable by other plugins or themes. By adding special comments to your CSS, you can "register" your classes, making it possible for other developer tools to integrate with them seamlessly.
+Any class with a valid `@hint` annotation becomes immediately available for selection in the *Global Styles* input field for all blocks when the CSS in the editor modal is saved. The live, front-end version of the stylesheet updates when the post or page is saved.
 
-### Purpose
+Classes without this annotation will still work if applied manually but will not be suggested in the list.
 
-The primary goal is to bridge the gap between your custom CSS and the WordPress block editor. For instance, a custom block could use these annotations to automatically populate a dropdown menu in the Inspector, allowing users to select from a list of predefined styles (like `highlight-box`) without having to remember and type the class names manually.
-
-This creates a more user-friendly and integrated experience, turning your static CSS classes into interactive options within the WordPress UI.
-
-### How It Works
-
-The plugin automatically parses your global CSS file for comments containing `@class` tags. When it finds these annotations, it triggers a WordPress action hook, `kntnt-global-styles-annotated-classes`, and passes an array of the parsed class names and their descriptions. Other plugins can then listen for this action to access your list of custom styles.
-
-### Syntax
-
-To make a class available, you need to define it within a standard CSS comment block (`/* ... */`). The syntax is as follows:
+Example:
 
 ```css
-/*
- * @class <class-name> | <description>
+/**
+ * @hint outline
+ * @hint bold | Emphasizes in various ways
  */
-```
 
-* `@class`: This tag is required to identify the line as a class annotation.
-* `<class-name>`: The name of your CSS class (e.g., `highlight-box`). This is required.
-* `|`: A pipe character used to separate the class name from its description.
-* `<description>`: An optional, human-readable description of what the class does (e.g., "A yellow highlight box for important content").
-
-### Example
-
-```css
-/*
- * @class highlight-box | A yellow highlight box for important content
- * @class call-to-action | Styled button for call-to-action elements
- */
-.highlight-box {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    padding: 1rem;
+.outline {
+  outline: 1px solid brown;
 }
 
-.call-to-action {
-    background: #007cba;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 4px;
+.outline.bold {
+  outline: 4px solid red;
+}
+
+p.bold,
+.bold:not(.outline) p {
+  font-weight: bold;
+}
+
+/* @hint emphasize */
+p.emphasize,
+.emphasize p {
+  font-style: italic;
+}
+
+/* This class is globally available, but it will not appear in the drop-down list. */
+p {
+  color: blue;
 }
 ```
 
-## Developer Hooks
+For those of you who are more nerdy, here is the regular expression used to find the annotations:
 
-The plugin provides several hooks for developers to extend and customize its functionality:
-
-### Actions
-
-**`kntnt-global-styles-saved`**
 ```php
-add_action( 'kntnt-global-styles-saved', function( $css_content ) {
-    // Triggered after CSS is successfully saved
-    // $css_content contains the sanitized CSS
-    error_log( 'Global styles updated: ' . strlen( $css_content ) . ' characters' );
-} );
+^\s*\/?\*+\s@hint\s+(?<name>\S+)\s*(?:\|\s*(?<description>.*?)\s*)?(?:\*\/.*)?$
 ```
 
-**`kntnt-global-styles-annotated-classes`**
-```php
-add_action( 'kntnt-global-styles-annotated-classes', function( $classes ) {
-    // Triggered when CSS contains @class annotations
-    // $classes is an array of parsed class definitions
-    foreach ( $classes as $class ) {
-        // $class['name'] - class name
-        // $class['description'] - optional description
-    }
-} );
-```
+## How does the plugin work?
+
+The plugin operates through a dual-storage system that balances editing flexibility with performance:
+
+### In the WordPress admin
+
+When you open the CSS editor modal, you're editing the master stylesheet stored in your WordPress database. This raw CSS includes all your comments, formatting, and `@hint` annotations that make classes available in the dropdown selector.
+
+### On your website
+
+When visitors load your site, they receive a separate, optimized static CSS file saved in your `/wp-content/uploads/` directory. This file is automatically minified (comments removed, whitespace reduced) for faster loading and is served directly by your web server—no database queries needed.
+
+### The synchronization process
+
+1. **Edit**: You write CSS in the modal editor, including `@hint` annotations for dropdown suggestions
+2. **Save**: The plugin saves your complete CSS to the database and simultaneously creates a minified version as a static file
+3. **Load**: The block editor reads from the database to populate class suggestions, while your website serves the optimized static file to visitors
+4. **Cache**: Since it's a static file, browsers and caching plugins can optimize delivery automatically
+
+#### Class suggestion system
+
+The plugin scans your CSS for special `@hint` comments (like `/* @hint button | Primary button style */`) and makes these classes available in an intelligent dropdown when editing blocks. You can still manually add any class name—the suggestions just make common classes faster to apply.
+
+This architecture ensures you get the best of both worlds: a rich editing experience with all your documentation and comments preserved, plus optimal front-end performance with cached, minified CSS delivery.
+
+## For developers
 
 ### Filters
 
-**`kntnt-global-styles-minimize`**
+The plugin provides several filters for developers to extend and customize its functionality:
+
+#### `kntnt-global-styles-hints`
+
+After the global stylesheet has been retrieved from the database and parsed for the `@hint` annotation, the filter `kntnt-global-styles-hints` is called with an associative array where the keys are the class names and the values are the corresponding descriptions or empty strings if no description has been specified. The filter should return an array with the same format. The returned array is used to populate the list of suggested classes in the class selector in the *Global Styles* panel.
+
+Note that `@hint` annotations added in the modal style editor are not filtered until after the stylesheet has been saved and reloaded.
+
+Example:
+
+```php
+add_filter( 'kntnt-global-styles-hints', function( $hints ) {
+    return array_merge( $hints, your_custom_hints() );
+} );
+```
+
+#### `kntnt-global-styles-pre-save`
+
+CSS specified in the modal style editor is run through the `kntnt-global-styles-pre-save` filter before being saved to the database and to an external file. Use this filter to amend and sanitize the stylesheet before it is saved to the database, sent for minification, and saved to file.
+
+Example:
+
+```php
+add_filter( 'kntnt-global-styles-pre-save', function( $css ) {
+    $css = your_amendments( $css );
+    $css = your_sanitization( $css );
+    return $css;
+} );
+```
+
+#### `kntnt-global-styles-minimize`
+
+The CSS entered in the modal style editor is minified after it is saved to the database but before it is saved as an external file to be loaded by the editor and on the front end. This plugin has a simple minifier that removes comments, the final semicolon in declaration blocks, and extra spaces. If you prefer to minify the CSS yourself or skip this step entirely, you can implement the filter `kntnt-global-styles-minimize`, which gets the stored CSS as its argument and should return the CSS to be saved to the external file.
+
+Example:
+
 ```php
 add_filter( 'kntnt-global-styles-minimize', function( $css ) {
-    // Customize CSS minification process
-    // Return minified CSS string
     return your_custom_minifier( $css );
 } );
 ```
 
-### Programmatic Access
+### Programmatic access
 
-**Get saved CSS:**
+The plugin provides several getters that can be used by external code.
+
+#### `\Kntnt\Global_Styles\Plugin::get_css()`
+
+This method returns the CSS stored in the database.
+
+Example:
+
 ```php
-$css = \Kntnt\Global_Styles\Plugin::get_option( 'css' );
+$css = \Kntnt\Global_Styles\Plugin::get_css();
 ```
 
-**Check file paths:**
+#### `\Kntnt\Global_Styles\Plugin::get_css_path()`
+
+This method returns the path to the minified CSS file.
+
+Example:
+
 ```php
-$css_url = \Kntnt\Global_Styles\Plugin::get_css_url();
-$css_path = \Kntnt\Global_Styles\Plugin::get_css_path();
+$css_file_path = \Kntnt\Global_Styles\Plugin::get_css_path();
 ```
 
-## Building from Source (for Developers)
+#### `\Kntnt\Global_Styles\Plugin::get_css_url()`
 
-If you want to modify the block editor components or create a distribution package, you'll need to install dependencies and build the plugin.
+This method returns the URL of the minified CSS file.
 
-### Development Setup
+Example:
 
-You need Node.js installed on your system. Download the LTS version from [https://nodejs.org/](https://nodejs.org/)
+```php
+$css_file_url = \Kntnt\Global_Styles\Plugin::get_css_url();
+```
 
-You can verify the installation by running:
+## Building from source
+
+If you want to modify the block editor components or create a distribution package, you'll need to install dependencies and build the plugin yourself.
+
+### Development setup
+
+You need Node.js installed on your system. Download the LTS version from [https://nodejs.org/](https://nodejs.org/).
+
+Open a terminal and verify your installation by running:
 
 ```bash
 node -v
 npm -v
 ```
 
-### Install Dependencies
+### Install dependencies
 
-Navigate to the plugin's root directory and run:
+Download this plugin [repository](https://github.com/Kntnt/kntnt-global-styles). In a terminal, navigate to the plugin's root directory and run:
 
 ```bash
 npm install
 ```
 
-### Available Scripts
+### Build the plugin
 
-The plugin provides several npm scripts for different development tasks:
+To compile the React components in `/src` into JavaScript and CSS files placed in `/js` and `/css` respectively, navigate to the plugin's root directory in a terminal and run:
 
-#### Development Scripts
-
-**`npm start`**
-- Starts development mode with live reload
-- Builds JavaScript from `src/index.js` and watches for changes
-- Automatically rebuilds when you modify source files
-- Use this while actively developing the plugin
-
-**`npm run build`**
-- Creates development builds of the React components
-- Builds from `src/index.js` to `js/index.js`
-- Use this for testing builds without watching for changes
-
-#### Production & Distribution
-
-**`npm run dist`**
-- Creates a complete distribution package ready for WordPress installation
-- Runs production build with optimizations
-- Creates a `dist/kntnt-global-styles/` directory with all plugin files
-- Minifies CSS and JavaScript files for optimal performance
-- Creates a `dist/kntnt-global-styles.zip` file ready for distribution
-- **This is what you use to create the final plugin package**
-
-#### Maintenance Scripts
-
-**`npm run clean`**
-- Removes all build files and distribution directories
-- Cleans up `js/` and `dist/` folders
-- Use this to start fresh or before committing code
-
-**`npm run lint`**
-- Checks JavaScript code quality and style
-- Reports potential issues and coding standard violations
-- Run this before committing changes
-
-**`npm run format`**
-- Automatically formats JavaScript code according to WordPress standards
-- Fixes indentation, spacing, and other style issues
-- Use this to ensure consistent code formatting
-
-### Development Workflow
-
-Here's the typical workflow for developing the plugin:
-
-1. **Start development:**
-   ```bash
-   npm start
-   ```
-
-2. **Make your changes** to files in the `src/` directory
-
-3. **Check code quality:**
-   ```bash
-   npm run lint
-   npm run format
-   ```
-
-4. **Test the build:**
-   ```bash
-   npm run build
-   ```
-
-5. **Create distribution package:**
-   ```bash
-   npm run dist
-   ```
-
-### Build Output
-
-The build process creates files in different locations:
-
-**Development builds (`npm start` or `npm run build`):**
-- `js/index.js` - Compiled JavaScript
-- `js/index.asset.php` - WordPress dependency information
-- `js/index.css` - Compiled CSS (if any)
-
-**Distribution builds (`npm run dist`):**
-- `dist/kntnt-global-styles/` - Complete plugin directory with optimized files
-- `dist/kntnt-global-styles.zip` - ZIP archive ready for WordPress installation
-
-The distribution build excludes development files like `src/`, `node_modules/`, and `scripts/`, creating a clean package with only the files needed for the plugin to function.
-
-### File Structure
-
-```
-kntnt-global-styles/
-├── src/                # Source files for development
-│   ├── index.js        # Main React component
-│   ├── useCssEditor.js # Custom React hook
-│   └── constants.js    # Constants and configuration
-├── js/                 # Built files (generated)
-│   ├── index.js        # Compiled JavaScript
-│   ├── index.asset.php # WordPress dependencies
-│   └── index.css       # Compiled CSS
-├── classes/            # PHP classes
-├── scripts/            # Build scripts
-└── dist/               # Distribution files (generated)
+```bash
+npm run build
 ```
 
-### Updating Dependencies
+If the plugin root directory is located inside a WordPress plugins directory (e.g., `/wp-content/plugins`), the plugin is now ready to be activated.
 
-> [!NOTE]
-> After installing updated dependencies, always rebuild the project assets:
-> `npm run build`
+Alternatively, you can use the following command, which automatically rebuilds the plugin whenever you make changes to any file. Stop the process by pressing <kbd>CTRL</kbd>+<kbd>C</kbd>.
 
-#### Check for Outdated Packages
+```bash
+npm start
+```
+
+### Update the translation template
+
+To update the `/languages/kntnt-global-styles.pot` file with all translatable strings for plugin localization, navigate to the plugin's root directory in a terminal and run:
+
+```bash
+npm run makepot
+```
+
+### Create a distribution-ready plugin
+
+To create a plugin zip file without the React source code and other build-related files, navigate to the plugin's root directory in a terminal and run:
+
+```bash
+npm run dist
+```
+
+The resulting `kntnt-global-styles.zip` file in `/dist` is now a complete and self-contained plugin that can be [installed in the usual way](#installation).
+
+### Delete generated files
+
+To delete all files generated by the build and dist scripts (i.e., the directories `/js`, `/css` and `/dist`, and their contents), navigate to the plugin's root directory in a terminal and run:
+
+```bash
+npm run clean
+```
+
+### Update Node packages
 
 To see which packages can be updated, run:
 
 ```bash
 npm outdated
 ```
-
-This command is read-only and does not modify any files.
-
-#### Safe, Incremental Update
 
 To update packages to the latest versions allowed by the SemVer ranges in `package.json` (i.e., no major versions with breaking changes), run:
 
@@ -316,7 +316,7 @@ npm update
 
 This command updates your `package-lock.json` and `node_modules`, but does not change `package.json`.
 
-#### Full Upgrade to Latest Versions
+### Upgrade Node packages
 
 To upgrade all packages to their latest available versions, including major ones:
 
@@ -334,40 +334,6 @@ npm install
 
 This workflow modifies `package.json` and is used for major upgrades, which may require code changes.
 
-### Troubleshooting
-
-**Build fails with missing dependencies:**
-```bash
-npm install
-```
-
-**JavaScript errors in the browser:**
-```bash
-npm run lint
-npm run format
-npm run build
-```
-
-**Distribution ZIP doesn't work:**
-- Make sure you ran `npm run dist` (not just `npm run build`)
-- Check that all required files are included in the ZIP
-
-**Development server not updating:**
-- Stop `npm start` and restart it
-- Clear browser cache
-- Run `npm run clean` and then `npm start`
-
-## Frequently Asked Questions
-
-**Why use this plugin instead of the Customizer's "Additional CSS"?**
-
-1. **Performance:** This plugin saves CSS to a static file, which can be cached by browsers and performance plugins. The Customizer often adds CSS inline, which can slow down page rendering and is harder to cache.
-2. **Theme Independence:** Styles added with this plugin are not tied to your theme. They will persist even if you change themes, saving you from migrating your custom CSS.
-
-**How does the plugin work internally?**
-
-When you save, the CSS is written to the `wp_options` table in the database and simultaneously saved to a static file in your `wp-content/uploads` directory. The frontend of your site loads the static file, ensuring no database queries are needed to serve the styles. The editor loads its content from the database option, while the static file contains minified CSS for optimal performance.
-
 ## Questions & Answers
 
 ### How can I get help?
@@ -381,10 +347,62 @@ If you have found a potential bug, please report it on the plugin's issue tracke
 ### How can I contribute?
 
 Contributions to the code or documentation are much appreciated.
+
 If you are familiar with Git, please do a pull request.
+
 If you are not familiar with Git, please create a new ticket on the plugin's issue tracker on GitHub.
 
 ## Changelog
+
+## 1.1.0
+
+### New Features
+
+- **CSS Class Selector**: Completely new interface that replaces WordPress default "Additional CSS class(es)" field with an intelligent dropdown selector
+- **@hint Annotation System**: Use `@hint classname | description` in CSS comments to make classes available in the dropdown selector
+- **Multiple Editor Access Methods**: Open the CSS editor via:
+    - Keyboard shortcut: `Cmd+Shift+G` (Mac) / `Ctrl+Shift+G` (Windows/Linux)
+    - Command Palette: Search for "Open Global Style Editor"
+    - More menu: "Edit Global Styles" option
+    - Block inspector: "Edit Global Styles" link
+- **Draft System**: CSS changes are now previewed instantly in the editor, with permanent saving when the document is saved
+- **Enhanced Live Preview**: Improved CSS injection system that works reliably across all editor iframes and contexts
+
+### User Experience Improvements
+
+- **Redesigned CSS Editor Modal**: Larger, more user-friendly interface optimized for CSS editing
+- **Intelligent Class Suggestions**: Dropdown shows available classes with descriptions for easier selection
+- **Better Error Handling**: React Error Boundary prevents editor crashes when plugin encounters errors
+- **Improved Accessibility**: Enhanced keyboard navigation and screen reader support
+
+### Developer Features
+
+- **New Filters**:
+    - `kntnt-global-styles-hints`: Modify available CSS class hints programmatically
+    - `kntnt-global-styles-pre-save`: Process CSS before saving to database
+- **Enhanced Architecture**: Better separation of concerns with specialized components
+- **Improved Build System**: More efficient webpack configuration with CSS extraction to dedicated directory
+
+### Technical Improvements
+
+- **Better Asset Organization**: CSS and JavaScript files now organized in separate directories (`css/`, `js/`)
+- **Translation Ready**: Complete internationalization support with generated `.pot` file
+- **Performance Optimizations**: More efficient CSS injection and file handling
+- **Code Quality**: Enhanced error handling, better TypeScript-like patterns with enums
+
+### Bug Fixes
+
+- Fixed CSS injection timing issues in block editor iframes
+- Improved reliability of live preview across different editor contexts
+- Better handling of upload directory permissions and file system operations
+- Enhanced nonce validation and security measures
+
+### Internal Changes
+
+- Refactored plugin architecture for better maintainability
+- Consolidated CSS annotation parsing (moved from separate Integrator class to Editor class)
+- Enhanced AJAX handling with standardized error codes
+- Improved singleton pattern implementation with better error handling
 
 ## 1.0.0
 

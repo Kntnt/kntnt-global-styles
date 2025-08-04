@@ -1,0 +1,83 @@
+/**
+ * CSS Editor Modal Styles
+ *
+ * Styles for the CSS editor modal component that provides a large textarea
+ * for editing global CSS styles. Designed to utilize maximum screen space
+ * while maintaining good usability and readability.
+ */
+
+/**
+ * Main modal container styling.
+ * Sets large dimensions for comfortable CSS editing experience.
+ */
+.kntnt-global-styles-editor {
+  width: 80vw;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/**
+ * Modal content area styling.
+ * Ensures content uses full available space within the modal.
+ */
+.kntnt-global-styles-editor .components-modal__content {
+  display: flex;
+  flex-direction: column;
+}
+
+/**
+ * Layout styling for form elements within the modal.
+ * Creates a flexible layout where the textarea expands to fill available space.
+ */
+.kntnt-global-styles-editor .components-modal__header + div,
+.kntnt-global-styles-editor .components-base-control,
+.kntnt-global-styles-editor .components-base-control__field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/**
+ * Textarea styling for the CSS editor.
+ * Monospace font and comfortable sizing for code editing.
+ */
+.kntnt-global-styles-editor .components-textarea-control__input {
+  flex: 1;
+  resize: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/**
+ * Button container styling at the bottom of the modal.
+ * Right-aligned buttons with proper spacing and visual separation.
+ */
+.kntnt-global-styles-editor-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dcdcde;
+}
+
+/**
+ * Notice styling within the modal.
+ * Provides spacing for error and success messages.
+ */
+.kntnt-global-styles-editor .components-notice {
+  margin-bottom: 1rem;
+}
+
+/**
+ * Help text styling within the modal.
+ * Consistent with WordPress admin interface help text styling.
+ */
+.kntnt-global-styles-editor .components-base-control__help {
+  margin-top: 0.5rem;
+  font-size: 12px;
+  font-style: italic;
+  color: #50575e;
+}

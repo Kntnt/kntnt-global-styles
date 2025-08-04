@@ -1,0 +1,172 @@
+# Copyright (C) 2025 Thomas Barregren
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Kntnt Global Styles 1.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/kntnt-global-styles\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-08-04T20:09:37+02:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: kntnt-global-styles\n"
+
+#. Plugin Name of the plugin
+#: kntnt-global-styles.php
+msgid "Kntnt Global Styles"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: kntnt-global-styles.php
+msgid "https://github.com/Kntnt/kntnt-global-styles"
+msgstr ""
+
+#. Description of the plugin
+#: kntnt-global-styles.php
+msgid "Manages a global CSS file editable in the block editor."
+msgstr ""
+
+#. Author of the plugin
+#: kntnt-global-styles.php
+msgid "Thomas Barregren"
+msgstr ""
+
+#. Author URI of the plugin
+#: kntnt-global-styles.php
+msgid "https://www.kntnt.com/"
+msgstr ""
+
+#: classes/Editor.php:127
+msgid "Security check failed."
+msgstr ""
+
+#: classes/Editor.php:135
+msgid "Insufficient permissions."
+msgstr ""
+
+#: classes/Editor.php:157
+msgid "CSS saved successfully."
+msgstr ""
+
+#: classes/Editor.php:165
+msgid "Failed to save CSS."
+msgstr ""
+
+#: classes/Editor.php:176
+msgid "CSS updated in preview. Save the document to make changes permanent."
+msgstr ""
+
+#: js/index.js:1
+#: src/KntntErrorBoundary.js:60
+msgid "The Global Styles panel encountered an error and could not be displayed."
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:178
+msgid "Global Styles"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:181
+msgid "CSS Classes"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:190
+msgid "Select or add classes…"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:149
+msgid "Add"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:194
+msgid "No classes available. Add some in the CSS editor."
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:197
+msgid "Click the arrow or start typing to select a class from the drop-down list. Alternatively, type the full name of the class and finish by pressing the Enter or Tab key."
+msgstr ""
+
+#: js/index.js:1
+#: src/css-class-selector.js:202
+#: src/css-editor.js:162
+#: src/editor-integration.js:102
+msgid "Edit Global Styles"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:142
+msgid "You have unsaved changes. Do you really want to close without saving?"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:172
+msgid "Global CSS Editor"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:173
+msgid "Define your global CSS classes here. Use @hint to make them available in the CSS selector. Changes are previewed in the editor. Save the document to make the changes permanent."
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:176
+msgid "/* Your global CSS here... */"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:181
+msgid "Cancel"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:98
+msgid "Error updating live preview"
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:184
+msgid "Updating preview..."
+msgstr ""
+
+#: js/index.js:1
+#: src/css-editor.js:184
+msgid "Update Preview"
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:50
+msgid "CSS updated in editor. Save the document to make changes permanent."
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:128
+msgid "Open Global Style Editor (Cmd+Shift+G)"
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:198
+msgid "Open Global Style Editor"
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:205
+msgid "global"
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:206
+msgid "styles"
+msgstr ""
+
+#: js/index.js:1
+#: src/editor-integration.js:207
+msgid "editor"
+msgstr ""

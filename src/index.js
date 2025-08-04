@@ -1,205 +1,118 @@
-/**
- * Main entry point for the Kntnt Global Styles block editor plugin.
- *
- * Registers a sidebar panel in the WordPress block editor that allows
- * users to write and save custom CSS with live preview functionality.
- */
-
-import { registerPlugin } from '@wordpress/plugins'
-import { PluginSidebar, PluginSidebarMoreMenuItem } from '@wordpress/edit-post'
-import {
-  Button,
-  TextareaControl,
-  Panel,
-  PanelBody,
-  PanelRow,
-  Flex,
-  FlexItem,
-  Modal,
-  __experimentalSpacer as Spacer
-} from '@wordpress/components'
-import { brush, fullscreen } from '@wordpress/icons'
-
-import { useCssEditor } from './useCssEditor'
-import { PLUGIN_NAME, PLUGIN_TITLE, UI_CONSTANTS, ELEMENT_IDS } from './constants'
+import { addFilter } from '@wordpress/hooks'
+import { withHiddenOriginalControl, withGlobalStylesPanel } from './css-class-selector'
+import './css-class-selector.css'
+import './css-editor.css'
+import './editor-integration'
 
 /**
- * Global Styles Panel Component for the Block Editor sidebar.
+ * Main entry point for the Kntnt Global Styles plugin.
  *
- * Provides a CSS editor interface within the WordPress block editor,
- * allowing users to write and save custom CSS that applies site-wide.
+ * Sets up WordPress block editor filters to enhance blocks with custom
+ * CSS class functionality and integrates the Global Styles panel.
+ * Also handles automatic persistence of draft CSS when documents are saved.
  */
-const StyleEditorPanel = () => {
-  const initialCss = window.kntntEditorPanel?.css_content || ''
 
-  const {
-    css,
-    setCss,
-    modalCss,
-    setModalCss,
-    isSaving,
-    isModalOpen,
-    handleSave,
-    openModal,
-    handleModalSave,
-    handleModalCancel,
-    l10n
-  } = useCssEditor(initialCss)
+// Hide the original WordPress "Additional CSS class(es)" control
+addFilter(
+  'editor.BlockEdit',
+  'kntnt-global-styles/with-hidden-original-control',
+  withHiddenOriginalControl
+)
 
-  return (
-    <>
-      <PluginSidebarMoreMenuItem target={PLUGIN_NAME}>
-        {PLUGIN_TITLE}
-      </PluginSidebarMoreMenuItem>
+// Add the enhanced Global Styles panel to all supported blocks
+addFilter(
+  'editor.BlockEdit',
+  'kntnt-global-styles/with-global-styles-panel',
+  withGlobalStylesPanel
+)
 
-      <PluginSidebar name={PLUGIN_NAME} title={PLUGIN_TITLE}>
-        <Panel>
-          <PanelBody
-            title={l10n.css_editor_title || 'CSS Editor'}
-            initialOpen={true}
-          >
-            <PanelRow>
-              <div style={{ width: '100%' }}>
-                <TextareaControl
-                  label={l10n.css_label || 'Custom CSS'}
-                  value={css}
-                  onChange={setCss}
-                  placeholder={l10n.css_placeholder || '/* Write your CSS here... */'}
-                  help={l10n.css_help || 'The CSS will be visible live in the editor when you save.'}
-                  rows={UI_CONSTANTS.TEXTAREA_ROWS}
-                  aria-describedby={ELEMENT_IDS.CSS_HELP}
-                  aria-label={l10n.css_aria_label || 'CSS Editor'}
-                  style={{
-                    fontFamily: 'monospace',
-                    minHeight: UI_CONSTANTS.TEXTAREA_MIN_HEIGHT,
-                    resize: 'vertical'
-                  }}
-                />
-                <div
-                  id={ELEMENT_IDS.CSS_HELP}
-                  className="screen-reader-text"
-                  aria-live="polite"
-                >
-                  {l10n.css_help || 'The CSS will be visible live in the editor when you save.'}
-                </div>
-              </div>
-            </PanelRow>
+/**
+ * Persists draft CSS content to the backend when documents are saved.
+ *
+ * Monitors the WordPress editor save state and automatically sends
+ * any draft CSS changes to the server for permanent storage when
+ * the user saves a post or page.
+ */
+const initializeDraftPersistence = () => {
+  // Track save state to detect when save operations complete
+  let wasRecentlySaving = false
 
-            <Spacer marginTop={UI_CONSTANTS.SPACER_MARGIN}/>
+  // Subscribe to WordPress data store changes
+  if (window.wp?.data) {
+    window.wp.data.subscribe(() => {
+      const isSaving = window.wp.data.select('core/editor')?.isSavingPost()
+      const isAutoSaving = window.wp.data.select('core/editor')?.isAutosavingPost()
 
-            <PanelRow>
-              <Flex justify="space-between" gap={2}>
-                <FlexItem>
-                  <Button
-                    variant="tertiary"
-                    onClick={openModal}
-                    icon={fullscreen}
-                    iconSize={16}
-                    aria-label={l10n.open_editor_aria || 'Open larger CSS editor'}
-                  >
-                    {l10n.open_editor || 'Larger Editor'}
-                  </Button>
-                </FlexItem>
-                <FlexItem>
-                  <Button
-                    variant="primary"
-                    onClick={() => handleSave()}
-                    isBusy={isSaving}
-                    disabled={isSaving}
-                    aria-label={isSaving ? l10n.saving_aria || 'Saving CSS...' : l10n.save_aria || 'Save CSS'}
-                  >
-                    {isSaving ? (l10n.saving || 'Saving...') : (l10n.save || 'Save')}
-                  </Button>
-                </FlexItem>
-              </Flex>
-            </PanelRow>
-          </PanelBody>
-        </Panel>
+      // Detect when a save operation completes (but not autosave)
+      if (wasRecentlySaving && !isSaving && !isAutoSaving) {
+        // Check if we have draft CSS that differs from saved CSS
+        if (window.kntnt_global_styles_draft &&
+          window.kntnt_global_styles_draft !== window.kntnt_global_styles_data?.css_content) {
 
-        {/* Modal Editor */}
-        {isModalOpen && (
-          <Modal
-            title={l10n.modal_title || 'Global Styles Editor'}
-            onRequestClose={handleModalCancel}
-            isDismissible={true}
-            size="large"
-            style={{
-              maxWidth: UI_CONSTANTS.MODAL_MAX_WIDTH,
-              maxHeight: UI_CONSTANTS.MODAL_MAX_HEIGHT
-            }}
-            aria-describedby="modal-css-editor-description"
-          >
-            <div
-              style={{
-                minHeight: '60vh',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <div
-                id="modal-css-editor-description"
-                className="screen-reader-text"
-              >
-                {l10n.modal_description || 'Large CSS editor for writing custom styles'}
-              </div>
+          persistDraftCSS()
+        }
+      }
 
-              <div style={{ flex: 1, marginBottom: '20px' }}>
-                <TextareaControl
-                  label={l10n.css_label || 'Custom CSS'}
-                  value={modalCss}
-                  onChange={setModalCss}
-                  placeholder={l10n.css_placeholder || '/* Write your CSS here... */'}
-                  help={l10n.css_help || 'The CSS will be visible live in the editor when you save.'}
-                  rows={UI_CONSTANTS.MODAL_TEXTAREA_ROWS}
-                  aria-label={l10n.modal_css_aria_label || 'Large CSS Editor'}
-                  style={{
-                    fontFamily: 'monospace',
-                    minHeight: UI_CONSTANTS.MODAL_TEXTAREA_MIN_HEIGHT,
-                    resize: 'vertical',
-                    width: '100%'
-                  }}
-                />
-              </div>
-
-              <Flex
-                justify="flex-end"
-                gap={2}
-                style={{ marginTop: 'auto' }}
-                role="group"
-                aria-label={l10n.modal_actions_aria || 'Modal actions'}
-              >
-                <FlexItem>
-                  <Button
-                    variant="tertiary"
-                    onClick={handleModalCancel}
-                    disabled={isSaving}
-                    aria-label={l10n.cancel_aria || 'Cancel and close editor'}
-                  >
-                    {l10n.cancel || 'Cancel'}
-                  </Button>
-                </FlexItem>
-                <FlexItem>
-                  <Button
-                    variant="primary"
-                    onClick={handleModalSave}
-                    isBusy={isSaving}
-                    disabled={isSaving}
-                    aria-label={isSaving ? l10n.saving_aria || 'Saving CSS...' : l10n.save_aria || 'Save CSS'}
-                  >
-                    {isSaving ? (l10n.saving || 'Saving...') : (l10n.save || 'Save')}
-                  </Button>
-                </FlexItem>
-              </Flex>
-            </div>
-          </Modal>
-        )}
-      </PluginSidebar>
-    </>
-  )
+      wasRecentlySaving = isSaving
+    })
+  }
 }
 
-// Register the plugin with WordPress
-registerPlugin('kntnt-global-styles-panel', {
-  render: StyleEditorPanel,
-  icon: brush,
-})
+/**
+ * Sends draft CSS content to the backend for permanent storage.
+ *
+ * Makes an AJAX request to save the draft CSS to the database and
+ * generate the static CSS file for frontend use. Updates global
+ * data structures with the newly persisted content.
+ */
+const persistDraftCSS = async () => {
+  try {
+    console.log('Kntnt Global Styles: Persisting draft CSS to backend...')
+
+    // Prepare form data for the AJAX request
+    const formData = new FormData()
+    formData.append('action', 'kntnt_global_styles_save_css')
+    formData.append('nonce', window.kntnt_global_styles_data?.nonce || '')
+    formData.append('css_content', window.kntnt_global_styles_draft)
+    formData.append('persist', 'true') // Flag for permanent storage
+
+    // Send the save request to WordPress
+    const response = await fetch(
+      window.kntnt_global_styles_data?.ajax_url || '',
+      {
+        method: 'POST',
+        body: formData,
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.success) {
+      // Update global data with the persisted content
+      if (window.kntnt_global_styles_data) {
+        window.kntnt_global_styles_data.css_content = window.kntnt_global_styles_draft
+        window.kntnt_global_styles_data.available_hints = result.data.available_hints || {}
+      }
+
+      // Clear draft since it's now permanently stored
+      delete window.kntnt_global_styles_draft
+
+      console.log('Kntnt Global Styles: Draft CSS successfully persisted')
+    } else {
+      console.error('Kntnt Global Styles: Failed to persist draft CSS:', result.data?.message)
+    }
+  } catch (error) {
+    console.error('Kntnt Global Styles: Error persisting draft CSS:', error)
+  }
+}
+
+// Initialize draft persistence when WordPress is ready
+if (window.wp?.domReady) {
+  window.wp.domReady(() => {
+    initializeDraftPersistence()
+  })
+}

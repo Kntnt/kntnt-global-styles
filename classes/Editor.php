@@ -4,181 +4,243 @@ declare( strict_types = 1 );
 
 namespace Kntnt\Global_Styles;
 
+use LogicException;
+
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
- * Main editor functionality for the CSS Global Styles.
+ * Handles CSS editing functionality in the block editor.
  *
- * Handles CSS sanitization, file saving operations, and AJAX requests
- * from the block editor sidebar panel. Also includes CSS minification functionality.
- *
- * @package Kntnt\Global_Styles
- * @since   2.0.0
+ * Manages CSS hint parsing, block editor asset loading, AJAX operations
+ * for saving CSS, and file system operations for static CSS generation.
  */
 final class Editor {
 
 	/**
-	 * A simple function to minify a CSS string.
+	 * Retrieves CSS class hints available for the class selector dropdown.
 	 *
-	 * Removes comments, unnecessary whitespace, and optimizes formatting
-	 * for smaller file sizes while maintaining CSS functionality.
+	 * Parses @hint annotations from the stored CSS and applies filters
+	 * to allow other plugins to modify the available suggestions.
 	 *
-	 * @param string $css The CSS code to be minified.
-	 *
-	 * @return string The minified CSS code.
-	 * @since 2.0.0
-	 *
+	 * @return array<string, string> Associative array of class names and descriptions.
 	 */
-	public static function minifier( string $css ): string {
+	public function get_available_hints(): array {
+		$css_content = Plugin::get_css();
+		if ( empty( $css_content ) ) {
+			return [];
+		}
 
-		// Remove all CSS comments (/* ... */) including multi-line comments
-		$css = preg_replace( '!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css );
+		$hints = $this->parse_hints_from_css( $css_content );
 
-		// Remove line breaks and tabs for compact output
-		$css = str_replace( [ "\r\n", "\r", "\n", "\t" ], '', $css );
+		// Allow other plugins to modify or add hints
+		return apply_filters( 'kntnt-global-styles-hints', $hints );
+	}
 
-		// Remove spaces around CSS syntax characters for compactness
-		$css = preg_replace( '/\s*([{}:;,])\s*/', '$1', $css );
+	/**
+	 * Parses @hint annotations from CSS content using exact regex from documentation.
+	 *
+	 * Extracts class names and optional descriptions from special comment
+	 * annotations that follow the pattern: @hint classname | description
+	 *
+	 * @param string $css The CSS content to parse for hints.
+	 *
+	 * @return array<string, string> Array mapping class names to descriptions.
+	 */
+	private function parse_hints_from_css( string $css ): array {
 
-		// Collapse multiple spaces into single spaces (needed for some CSS values)
-		$css = preg_replace( '/\s+/', ' ', $css );
+		$hints = [];
 
-		// Remove unnecessary trailing semicolons before closing braces
-		$css = str_replace( ';}', '}', $css );
+		// Use the exact regex pattern documented in README.md - do not modify
+		$pattern = '/^\s*\/?\*+\s@hint\s+(?P<name>\S+)\s*(?:\|\s*(?P<description>.*?)\s*)?(?:\*\/.*)?$/m';
 
-		// Clean up any remaining whitespace at start/end
-		return trim( $css );
+		if ( preg_match_all( $pattern, $css, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $match ) {
+				$class_name = trim( $match['name'] );
+				$description = isset( $match['description'] ) ? trim( $match['description'] ) : '';
+
+				// Validate class name follows CSS naming conventions
+				if ( ! empty( $class_name ) && preg_match( '/^[a-zA-Z][\w-]*$/', $class_name ) ) {
+					$hints[ $class_name ] = $description;
+				}
+			}
+		}
+
+		return $hints;
 
 	}
 
 	/**
-	 * Handles the AJAX request to save CSS from the sidebar panel.
+	 * Enqueues JavaScript and CSS assets for the block editor.
 	 *
-	 * Processes the CSS content, saves it to database and file, then returns
-	 * a JSON response with success/error information for the frontend.
+	 * Loads the React components, styles, and PHP data needed for the
+	 * Global Styles panel and CSS editor modal functionality.
 	 *
 	 * @return void
-	 * @since 2.0.0
+	 * @throws LogicException If built assets are missing.
+	 */
+	public function enqueue_block_editor_assets(): void {
+
+		$assets_file = Plugin::get_plugin_dir() . 'js/index.asset.php';
+
+		// Ensure the plugin has been built before use
+		if ( ! is_readable( $assets_file ) ) {
+			throw new LogicException( 'Missing built assets. Execute `npm run build` to generate required files.' );
+		}
+
+		// Load WordPress-generated asset metadata
+		$assets_meta = include $assets_file;
+
+		// Enqueue main editor JavaScript with proper dependencies
+		$js_handle = Plugin::get_slug() . '-script';
+		wp_enqueue_script( $js_handle, Plugin::get_plugin_url() . 'js/index.js', $assets_meta['dependencies'], $assets_meta['version'], true );
+
+		// Enqueue editor-specific styles
+		wp_enqueue_style( Plugin::get_slug() . '-style', Plugin::get_plugin_url() . 'css/index.css', [], $assets_meta['version'] );
+
+		// Enable WordPress translation system for the JavaScript
+		wp_set_script_translations( $js_handle, Plugin::get_l10n_domain(), Plugin::get_plugin_dir() . Plugin::get_l10n_dir() );
+
+		// Pass PHP data to JavaScript components via wp_localize_script
+		wp_localize_script( $js_handle, 'kntnt_global_styles_data', [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'kntnt-global-styles-nonce' ),
+			'css_content' => Plugin::get_css(),
+			'available_hints' => $this->get_available_hints(),
+		] );
+	}
+
+	/**
+	 * Handles AJAX requests to save CSS from the editor modal.
 	 *
+	 * Processes both preview updates (temporary) and full saves (persistent).
+	 * Validates user permissions and nonce before processing the request.
+	 *
+	 * @return void
 	 */
 	public function handle_ajax_save(): void {
-		check_ajax_referer( 'kntnt-global-styles-save-nonce', 'nonce' );
-
-		if ( ! current_user_can( Plugin::get_capability() ) ) {
+		// Verify request authenticity
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'kntnt-global-styles-nonce' ) ) {
 			wp_send_json_error( [
-				'message' => __( 'Unauthorized use.', 'kntnt-global-styles' ),
-				'code' => 'unauthorized',
+				'message' => __( 'Security check failed.', 'kntnt-global-styles' ),
+				'code' => AjaxStatus::INVALID_NONCE->value,
 			] );
 		}
 
-		$css_content = $_POST['css_content'] ?? '';
-
-		if ( $this->save_css_content( $css_content ) ) {
-
-			// Clear file cache to ensure fresh data
-			Assets::clear_file_cache();
-
-			// Trigger cache flush if available
-			if ( function_exists( 'wp_cache_flush' ) ) {
-				wp_cache_flush();
-			}
-
-			wp_send_json_success( [
-				'message' => __( 'CSS saved successfully.', 'kntnt-global-styles' ),
-				'css_content' => $css_content,
-				'file_info' => [
-					'css_file_url' => Plugin::get_css_url(),
-					'css_file_path' => Plugin::get_css_path(),
-					'file_exists' => file_exists( Plugin::get_css_path() ),
-					'file_size' => file_exists( Plugin::get_css_path() ) ? filesize( Plugin::get_css_path() ) : 0,
-				],
-				'timestamp' => current_time( 'timestamp' ),
+		// Verify user has permission to edit theme options
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			wp_send_json_error( [
+				'message' => __( 'Insufficient permissions.', 'kntnt-global-styles' ),
+				'code' => AjaxStatus::INSUFFICIENT_PERMISSIONS->value,
 			] );
+		}
+
+		// Extract request parameters
+		$css_content = $_POST['css_content'] ?? '';
+		$should_persist = isset( $_POST['persist'] ) && $_POST['persist'] === 'true';
+
+		// Apply pre-save filter for CSS modification/sanitization
+		$css_content = apply_filters( 'kntnt-global-styles-pre-save', $css_content );
+
+		if ( $should_persist ) {
+			// Full save - update database and generate static file
+			if ( $this->save_css_content( $css_content ) ) {
+				// Clear cached file information after successful save
+				Assets::clear_file_cache();
+
+				// Get updated hints from the newly saved CSS
+				$updated_hints = $this->get_available_hints();
+
+				wp_send_json_success( [
+					'message' => __( 'CSS saved successfully.', 'kntnt-global-styles' ),
+					'css_content' => $css_content,
+					'available_hints' => $updated_hints,
+					'persisted' => true,
+				] );
+			}
+			else {
+				wp_send_json_error( [
+					'message' => __( 'Failed to save CSS.', 'kntnt-global-styles' ),
+					'code' => AjaxStatus::SAVE_FAILED->value,
+				] );
+			}
 		}
 		else {
-			wp_send_json_error( [
-				'message' => __( 'Failed to save CSS file. Please check file permissions.', 'kntnt-global-styles' ),
-				'code' => 'file_save_failed',
+			// Preview save - only parse hints for live preview without persistence
+			$updated_hints = $this->parse_hints_from_css( $css_content );
+			$updated_hints = apply_filters( 'kntnt-global-styles-hints', $updated_hints );
+
+			wp_send_json_success( [
+				'message' => __( 'CSS updated in preview. Save the document to make changes permanent.', 'kntnt-global-styles' ),
+				'css_content' => $css_content,
+				'available_hints' => $updated_hints,
+				'persisted' => false,
 			] );
 		}
 	}
 
 	/**
-	 * Saves CSS content to both database and file.
+	 * Saves CSS content to both database and static file system.
 	 *
-	 * Central method for processing and saving CSS content. Handles sanitization,
-	 * database storage, file writing, and action hook triggering.
+	 * Handles the dual-storage approach: raw CSS in database for editing,
+	 * minified CSS as static file for frontend performance.
 	 *
 	 * @param string $css The CSS content to save.
 	 *
-	 * @return bool True on success, false on failure.
-	 * @since 2.0.0
-	 *
+	 * @return bool True if both database and file operations succeeded.
 	 */
 	private function save_css_content( string $css ): bool {
-		// Sanitize the CSS input
-		$sanitized_css = $this->sanitize_css( stripslashes( $css ) );
+		// Sanitize CSS for safe storage
+		$sanitized_css = $this->sanitize_css( $css );
 
-		// Save to database
-		Plugin::set_option( [ 'css' => $sanitized_css ] );
+		// Save to database for editor access
+		$db_saved = Plugin::set_css( $sanitized_css );
 
-		// Save to file
+		// Generate static file for frontend performance
 		$file_saved = $this->save_css_to_file( $sanitized_css );
 
-		// Trigger action hook on successful save
-		if ( $file_saved ) {
-			do_action( 'kntnt-global-styles-saved', $sanitized_css );
-		}
-
-		return $file_saved;
+		return $db_saved && $file_saved;
 	}
 
 	/**
-	 * Sanitizes a block of CSS code for safe storage and output.
+	 * Sanitizes CSS content for safe storage and output.
 	 *
-	 * This function assumes the user has permission to add arbitrary CSS.
-	 * However, we want to prevent accidental cross-site scripting (XSS)
-	 * attacks by removing potentially malicious HTML tags rather than
-	 * strictly validating the CSS syntax.
+	 * Removes potentially dangerous content while preserving valid CSS.
+	 * Protects against injection attacks and malformed input.
 	 *
 	 * @param string $css The raw CSS string from user input.
 	 *
-	 * @return string The sanitized CSS string, safe for output.
-	 * @since 2.0.0
-	 *
+	 * @return string The sanitized CSS string.
 	 */
 	private function sanitize_css( string $css ): string {
-
-		// Remove leading and trailing whitespace for data hygiene
+		// Remove leading and trailing whitespace
 		$css = trim( $css );
 
-		// Strip null bytes to prevent null byte injection attacks
+		// Prevent null byte injection attacks
 		$css = str_replace( "\0", '', $css );
 
-		// Use WordPress core function to strip all HTML and PHP tags
-		// This prevents XSS attacks from malicious script tags
+		// Strip HTML and PHP tags while preserving CSS syntax
 		$css = wp_strip_all_tags( $css );
 
 		return $css;
-
 	}
 
 	/**
-	 * Saves CSS content to a dedicated file in the uploads directory.
+	 * Saves CSS content to a static file in the uploads directory.
 	 *
-	 * Uses WordPress Filesystem API for secure file operations. Applies minification
-	 * filter if available, otherwise uses built-in minifier. Creates directory
-	 * structure if needed.
+	 * Creates a minified CSS file that can be served directly by the web
+	 * server for optimal frontend performance with browser caching.
 	 *
-	 * @param string $css_content The CSS content to be saved.
+	 * @param string $css_content The CSS content to save.
 	 *
-	 * @return bool True on success, false on failure.
-	 * @since 2.0.0
-	 *
+	 * @return bool True if file was successfully created.
 	 */
 	private function save_css_to_file( string $css_content ): bool {
-
 		global $wp_filesystem;
 
-		// Initialize WordPress Filesystem API
+		// Initialize WordPress filesystem API
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
@@ -188,17 +250,17 @@ final class Editor {
 			return false;
 		}
 
-		// Get target directory and file paths
+		// Get target paths for CSS file
 		$target_dir = Plugin::get_css_dir();
 		$target_file = Plugin::get_css_path();
 
-		// Ensure we have valid paths before proceeding
+		// Ensure upload directory is available
 		if ( empty( $target_dir ) || empty( $target_file ) ) {
 			error_log( 'Kntnt Global Styles: Upload directory not available' );
 			return false;
 		}
 
-		// Create target directory if it doesn't exist
+		// Create plugin directory in uploads if it doesn't exist
 		if ( ! $wp_filesystem->is_dir( $target_dir ) ) {
 			if ( ! $wp_filesystem->mkdir( $target_dir, FS_CHMOD_DIR ) ) {
 				error_log( 'Kntnt Global Styles: Failed to create directory: ' . $target_dir );
@@ -206,34 +268,57 @@ final class Editor {
 			}
 		}
 
-		// Verify directory is writable
+		// Verify directory is writable before proceeding
 		if ( ! $wp_filesystem->is_writable( $target_dir ) ) {
 			error_log( 'Kntnt Global Styles: Directory not writable: ' . $target_dir );
 			return false;
 		}
 
-		// Apply CSS processing (minification filter or built-in minifier)
+		// Apply custom minification filter or use built-in minifier
 		if ( has_filter( 'kntnt-global-styles-minimize' ) ) {
-			// Use custom filter if available
 			$css_content = apply_filters( 'kntnt-global-styles-minimize', $css_content );
 		}
 		else {
-			// Use built-in minifier as default
-			$css_content = self::minifier( $css_content );
+			$css_content = $this->minify_css( $css_content );
 		}
 
-		// Write CSS content to file with proper permissions
+		// Write minified CSS to static file
 		$result = $wp_filesystem->put_contents( $target_file, $css_content, FS_CHMOD_FILE );
 		if ( ! $result ) {
 			error_log( 'Kntnt Global Styles: Failed to write CSS file: ' . $target_file );
 			return false;
 		}
 
-		// Clear cached file information to ensure fresh data on next request
-		Assets::clear_file_cache();
-
 		return true;
+	}
 
+	/**
+	 * Minifies CSS content for production use.
+	 *
+	 * Removes comments, whitespace, and unnecessary syntax to reduce
+	 * file size while maintaining CSS functionality.
+	 *
+	 * @param string $css The CSS content to minify.
+	 *
+	 * @return string The minified CSS.
+	 */
+	private function minify_css( string $css ): string {
+		// Remove CSS comments (/* ... */)
+		$css = preg_replace( '!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css );
+
+		// Remove line breaks and tabs
+		$css = str_replace( [ "\r\n", "\r", "\n", "\t" ], '', $css );
+
+		// Remove spaces around CSS syntax characters
+		$css = preg_replace( '/\s*([{}:;,])\s*/', '$1', $css );
+
+		// Collapse multiple spaces into single spaces
+		$css = preg_replace( '/\s+/', ' ', $css );
+
+		// Remove unnecessary trailing semicolons before closing braces
+		$css = str_replace( ';}', '}', $css );
+
+		return trim( $css );
 	}
 
 }

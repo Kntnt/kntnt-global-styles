@@ -9,18 +9,14 @@ use LogicException;
 /**
  * Main plugin class implementing singleton pattern.
  *
- * Manages plugin initialization, configuration, and provides central access
- * to plugin metadata and options. Coordinates between different plugin components.
- *
- * @package Kntnt\Global_Styles
- * @since   2.0.0
+ * Coordinates plugin initialization, manages configuration, and provides
+ * centralized access to plugin metadata, options, and component instances.
+ * Serves as the primary entry point for all plugin functionality.
  */
 final class Plugin {
 
 	/**
 	 * Singleton instance of the plugin.
-	 *
-	 * @since 2.0.0
 	 *
 	 * @var Plugin|null
 	 */
@@ -29,8 +25,6 @@ final class Plugin {
 	/**
 	 * Path to the main plugin file.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @var string|null
 	 */
 	private static ?string $plugin_file = null;
@@ -38,83 +32,59 @@ final class Plugin {
 	/**
 	 * Plugin slug derived from filename.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @var string|null
 	 */
 	private static ?string $plugin_slug = null;
 
 	/**
-	 * Cached plugin metadata from header.
+	 * Cached plugin metadata from WordPress plugin header.
 	 *
-	 * @since 2.0.0
-	 *
-	 * @var array|null
+	 * @var array<string, mixed>|null
 	 */
 	private static ?array $plugin_data = null;
 
 	/**
-	 * Updater component instance.
-	 *
-	 * @since 2.1.0
+	 * Handles plugin updates from GitHub.
 	 *
 	 * @var Updater
 	 */
 	public readonly Updater $updater;
 
 	/**
-	 * Editor component instance.
-	 *
-	 * @since 2.0.0
+	 * Manages CSS editing functionality in block editor.
 	 *
 	 * @var Editor
 	 */
-	public readonly Editor $editor;
+	private readonly Editor $editor;
 
 	/**
-	 * Assets management component instance.
-	 *
-	 * @since 2.0.0
+	 * Handles frontend and editor asset enqueueing.
 	 *
 	 * @var Assets
 	 */
-	public readonly Assets $assets;
-
-	/**
-	 * CSS annotation parser component instance.
-	 *
-	 * @since 2.0.0
-	 *
-	 * @var Integrator
-	 */
-	public readonly Integrator $parser;
+	private readonly Assets $assets;
 
 	/**
 	 * Private constructor for singleton pattern.
 	 *
-	 * Initializes plugin components and registers WordPress hooks.
-	 *
-	 * @since 2.0.0
+	 * Initializes all plugin components and registers WordPress hooks.
+	 * Called only once when the singleton instance is first created.
 	 */
 	private function __construct() {
-		// Initialize plugin components
-		$this->updater = new Updater;
 		$this->editor = new Editor;
+		$this->updater = new Updater;
 		$this->assets = new Assets;
-		$this->parser = new Integrator;
 
-		// Register WordPress hooks
+		// Register all WordPress hooks for plugin functionality
 		$this->register_hooks();
 	}
 
 	/**
 	 * Gets the singleton instance of the plugin.
 	 *
-	 * Creates the instance if it doesn't exist, otherwise returns existing instance.
+	 * Implements lazy initialization - creates instance only when needed.
 	 *
 	 * @return Plugin The plugin instance.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function get_instance(): Plugin {
 		if ( self::$instance === null ) {
@@ -124,15 +94,25 @@ final class Plugin {
 	}
 
 	/**
-	 * Sets the plugin file path. Called from the main plugin file.
+	 * Gets the editor component instance.
 	 *
-	 * Must be called before any other plugin methods that depend on file paths.
+	 * Provides access to CSS editing functionality for external use.
+	 *
+	 * @return Editor The editor component instance.
+	 */
+	public function get_editor(): Editor {
+		return $this->editor;
+	}
+
+	/**
+	 * Sets the plugin file path for internal use.
+	 *
+	 * Must be called from the main plugin file before any other plugin
+	 * methods that depend on file paths or plugin metadata.
 	 *
 	 * @param string $file Full path to the main plugin file.
 	 *
 	 * @return void
-	 * @since 2.0.0
-	 *
 	 */
 	public static function set_plugin_file( string $file ): void {
 		self::$plugin_file = $file;
@@ -142,10 +122,7 @@ final class Plugin {
 	 * Gets the plugin file path.
 	 *
 	 * @return string Full path to the main plugin file.
-	 *
-	 * @throws LogicException If plugin file hasn't been set.
-	 * @since 2.0.0
-	 *
+	 * @throws LogicException If plugin file hasn't been set via set_plugin_file().
 	 */
 	public static function get_plugin_file(): string {
 		if ( self::$plugin_file === null ) {
@@ -157,91 +134,100 @@ final class Plugin {
 	/**
 	 * Gets the plugin directory path.
 	 *
-	 * @return string Full path to the plugin directory.
-	 * @since 2.0.0
-	 *
+	 * @return string Full filesystem path to the plugin directory.
 	 */
 	public static function get_plugin_dir(): string {
 		return plugin_dir_path( self::get_plugin_file() );
 	}
 
 	/**
-	 * Gets url to the plugin directory.
+	 * Gets the plugin directory URL.
 	 *
-	 * @return string URL to the plugin directory.
-	 * @since 2.0.0
-	 *
+	 * @return string HTTP URL to the plugin directory.
 	 */
 	public static function get_plugin_url(): string {
 		return plugin_dir_url( self::get_plugin_file() );
 	}
 
 	/**
-	 * Gets the plugin data from the plugin header.
+	 * Gets plugin metadata from the WordPress plugin header.
 	 *
-	 * Reads version information from the main plugin file header. Caches
-	 * the result to avoid repeated file parsing.
+	 * Reads and caches metadata like version, description, and text domain
+	 * from the main plugin file header comments.
 	 *
-	 * @return array {
-	 *     Plugin data. Values will be empty if not supplied by the plugin.
+	 * @return array<string, mixed> {
+	 *     Plugin data array from WordPress get_plugin_data() function.
 	 *
-	 * @type string $Name            Name of the plugin. Should be unique.
-	 * @type string $PluginURI       Plugin URI.
-	 * @type string $Version         Plugin version.
-	 * @type string $Description     Plugin description.
-	 * @type string $Author          Plugin author's name.
-	 * @type string $AuthorURI       Plugin author's website address (if set).
-	 * @type string $TextDomain      Plugin textdomain.
-	 * @type string $DomainPath      Plugin's relative directory path to .mo files.
-	 * @type bool   $Network         Whether the plugin can only be activated network-wide.
-	 * @type string $RequiresWP      Minimum required version of WordPress.
-	 * @type string $RequiresPHP     Minimum required version of PHP.
-	 * @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
-	 * @type string $RequiresPlugins Comma separated list of dot org plugin slugs.
-	 * @type string $Title           Title of the plugin and link to the plugin's site (if set).
-	 * @type string $AuthorName      Plugin author's name.
-	 *                               }
-	 * @since 2.1.0
-	 *
+	 * @type string $Name        Plugin name.
+	 * @type string $PluginURI   Plugin URI.
+	 * @type string $Version     Plugin version.
+	 * @type string $Description Plugin description.
+	 * @type string $Author      Plugin author's name.
+	 * @type string $AuthorURI   Plugin author's website.
+	 * @type string $TextDomain  Plugin textdomain for translations.
+	 * @type string $DomainPath  Relative path to translation files.
+	 * @type bool   $Network     Whether plugin can only be network activated.
+	 * @type string $RequiresWP  Minimum WordPress version.
+	 * @type string $RequiresPHP Minimum PHP version.
+	 * @type string $UpdateURI   Update URI for custom updaters.
+	 *                           }
 	 */
 	public static function get_plugin_data(): array {
 
-		// Load plugin data if not already cached
+		// Load and cache plugin metadata on first access
 		if ( self::$plugin_data === null ) {
-
-			// get_plugin_data() is only available in admin context by default.
-			// Since this plugin can be instantiated on frontend (for enqueuing styles),
-			// we need to ensure the function exists before calling it.
-			if ( ! function_exists( 'get_plugin_data' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			}
-
-			// Parse plugin header for metadata
-			self::$plugin_data = get_plugin_data( self::get_plugin_file() );
-
+			self::$plugin_data = self::parse_plugin_header();
 		}
 
 		return self::$plugin_data;
-
 	}
 
 	/**
-	 * Gets the plugin version from the plugin header.
+	 * Parses the plugin header for metadata.
 	 *
-	 * @return string Plugin version number.
-	 * @since 2.0.0
+	 * Uses WordPress get_plugin_data() function to extract metadata
+	 * from plugin file header comments. Includes the function file
+	 * since it's not available by default on frontend.
 	 *
+	 * @return array<string, mixed> Plugin header data.
 	 */
-	public static function get_version(): string {
-		return self::get_plugin_data()['Version'] ?? '';
+	private static function parse_plugin_header(): array {
+		// Ensure get_plugin_data() function is available
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		// Extract metadata from plugin file header
+		return get_plugin_data( self::get_plugin_file() );
 	}
 
 	/**
-	 * Gets the plugin slug based on filename (without .php).
+	 * Gets the plugin text domain for translations.
+	 *
+	 * @return string Plugin text domain from header or empty string.
+	 */
+	public static function get_l10n_domain(): string {
+		$plugin_data = self::get_plugin_data();
+		return $plugin_data['TextDomain'] ?? '';
+	}
+
+	/**
+	 * Gets the relative path to translation files.
+	 *
+	 * @return string Domain path from plugin header or empty string.
+	 */
+	public static function get_l10n_dir(): string {
+		$plugin_data = self::get_plugin_data();
+		return $plugin_data['DomainPath'] ?? '';
+	}
+
+	/**
+	 * Gets the plugin slug based on main file name.
+	 *
+	 * Derives slug from the plugin filename without the .php extension.
+	 * Used for generating option names, handles, and other identifiers.
 	 *
 	 * @return string Plugin slug.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function get_slug(): string {
 		if ( self::$plugin_slug === null ) {
@@ -252,36 +238,22 @@ final class Plugin {
 	}
 
 	/**
-	 * Required capability for using the editor.
-	 *
-	 * Can be made configurable in the future if necessary.
-	 *
-	 * @return string WordPress capability required to use the plugin.
-	 * @since 2.0.0
-	 *
-	 */
-	public static function get_capability(): string {
-		return 'edit_theme_options';
-	}
-
-	/**
 	 * Gets plugin option data from WordPress options table.
 	 *
-	 * Can retrieve the entire option array or a specific key within it.
-	 * Option name is automatically generated from plugin slug.
+	 * Retrieves stored plugin configuration. Can get the entire option
+	 * array or a specific key within it. Option name is automatically
+	 * generated from the plugin slug.
 	 *
 	 * @param string|null $key Specific option key to retrieve, or null for entire option.
 	 *
 	 * @return mixed Option value or null if not found.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function get_option( string $key = null ): mixed {
-		// Generate option name from plugin slug (replace hyphens with underscores)
+		// Convert plugin slug to option name format
 		$option_name = str_replace( '-', '_', self::get_slug() );
 		$option = get_option( $option_name, [] );
 
-		// Return specific key or entire option
+		// Return specific key or entire option array
 		if ( $key !== null ) {
 			return $option[ $key ] ?? null;
 		}
@@ -291,37 +263,57 @@ final class Plugin {
 	/**
 	 * Sets plugin option data in WordPress options table.
 	 *
-	 * Can set the entire option or update a specific key within the option array.
-	 * Creates the option if it doesn't exist.
+	 * Stores plugin configuration. Can set the entire option or update
+	 * a specific key within the option array. Creates the option if
+	 * it doesn't exist.
 	 *
 	 * @param mixed       $value The value to set.
 	 * @param string|null $key   Specific option key to update, or null to replace entire option.
 	 *
 	 * @return bool True on success, false on failure.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function set_option( mixed $value, string $key = null ): bool {
-		// Generate option name from plugin slug
+		// Generate standardized option name from plugin slug
 		$option_name = str_replace( '-', '_', self::get_slug() );
 
 		if ( $key !== null ) {
-			// Update specific key within option array
+			// Update specific key within existing option array
 			$option = get_option( $option_name, [] );
 			$option[ $key ] = $value;
 			return update_option( $option_name, $option );
 		}
 
-		// Replace entire option
+		// Replace entire option with new value
 		return update_option( $option_name, $value );
+	}
+
+	/**
+	 * Gets the CSS content from the database.
+	 *
+	 * @return string CSS content or empty string if not found.
+	 */
+	public static function get_css(): string {
+		return self::get_option( 'css' ) ?? '';
+	}
+
+	/**
+	 * Sets the CSS content in the database.
+	 *
+	 * @param string $css CSS content to save.
+	 *
+	 * @return bool True on success, false on failure.
+	 */
+	public static function set_css( string $css ): bool {
+		return self::set_option( $css, 'css' );
 	}
 
 	/**
 	 * Gets the directory path where CSS files are stored.
 	 *
-	 * @return string Directory path or empty string if upload dir unavailable.
-	 * @since 2.0.0
+	 * Creates a plugin-specific subdirectory within WordPress uploads
+	 * directory for storing generated CSS files.
 	 *
+	 * @return string Directory path or empty string if upload dir unavailable.
 	 */
 	public static function get_css_dir(): string {
 		$basedir = self::wp_upload_dir( 'basedir' );
@@ -332,8 +324,6 @@ final class Plugin {
 	 * Gets the full file path for the CSS file.
 	 *
 	 * @return string File path or empty string if directory unavailable.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function get_css_path(): string {
 		$dir = self::get_css_dir();
@@ -344,8 +334,6 @@ final class Plugin {
 	 * Gets the public URL for the CSS file.
 	 *
 	 * @return string File URL or empty string if upload dir unavailable.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function get_css_url(): string {
 		$baseurl = self::wp_upload_dir( 'baseurl' );
@@ -353,57 +341,67 @@ final class Plugin {
 	}
 
 	/**
-	 * Registers WordPress hooks for plugin functionality.
+	 * Loads the plugin's translated strings.
 	 *
-	 * Sets up all necessary WordPress actions and filters for the plugin
-	 * to function properly.
+	 * Initializes the WordPress translation system for the plugin using
+	 * the text domain and domain path from the plugin header.
 	 *
 	 * @return void
-	 * @since 2.0.0
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain( self::get_l10n_domain(), false, self::get_slug() . self::get_l10n_dir() );
+	}
+
+	/**
+	 * Registers WordPress hooks for plugin functionality.
 	 *
+	 * Sets up all necessary WordPress actions and filters to integrate
+	 * the plugin with WordPress core, block editor, and frontend.
+	 *
+	 * @return void
 	 */
 	private function register_hooks(): void {
 
-		// Check for updates from GitHub
+		// Check for plugin updates from GitHub repository
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this->updater, 'check_for_updates' ] );
 
-		// AJAX handler for saving CSS
-		add_action( 'wp_ajax_kntnt_save_css', [ $this->editor, 'handle_ajax_save' ] );
+		// Load plugin translations early in WordPress initialization
+		add_action( 'init', [ $this, 'load_textdomain' ] );
 
-		// Register admin assets
-		add_action( 'admin_enqueue_scripts', [ $this->assets, 'enqueue_admin_assets' ] );
+		// Load block editor JavaScript and CSS assets
+		add_action( 'enqueue_block_editor_assets', [ $this->editor, 'enqueue_block_editor_assets' ] );
 
-		// Register frontend assets (high priority to load last)
+		// Load frontend stylesheet with high priority to allow theme overrides
 		add_action( 'wp_enqueue_scripts', [ $this->assets, 'enqueue_frontend_style' ], 9999 );
 
-		// Add custom styles to block editor
+		// Inject CSS into block editor for live preview functionality
 		add_action( 'init', [ $this->assets, 'add_custom_css_to_block_editor' ] );
 
-		// Parse CSS for annotated classes and trigger action
-		add_action( 'init', [ $this->parser, 'parse_and_trigger_annotated_classes' ] );
-
+		// Handle AJAX requests for saving CSS from the editor modal
+		add_action( 'wp_ajax_kntnt_global_styles_save_css', [ $this->editor, 'handle_ajax_save' ] );
 	}
 
 	/**
 	 * Helper method to get WordPress upload directory information.
 	 *
-	 * @param string $key The specific upload directory key to retrieve.
+	 * Safely retrieves upload directory paths and URLs with error handling
+	 * for cases where uploads directory is not properly configured.
+	 *
+	 * @param string $key The specific upload directory key to retrieve (basedir, baseurl, etc.).
 	 *
 	 * @return string|false Directory path/URL or false on error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function wp_upload_dir( string $key ): string|false {
-		// Get upload directory information
+		// Get WordPress upload directory configuration
 		$upload_dir = wp_upload_dir();
 
-		// Check for errors in upload directory configuration
+		// Check for upload directory configuration errors
 		if ( $upload_dir['error'] ) {
 			error_log( 'Kntnt Global Styles: Upload directory error: ' . $upload_dir['error'] );
 			return false;
 		}
 
-		// Return requested key
+		// Return the requested directory information
 		return $upload_dir[ $key ];
 	}
 
@@ -411,8 +409,6 @@ final class Plugin {
 	 * Prevents cloning of singleton instance.
 	 *
 	 * @throws LogicException Always throws to prevent cloning.
-	 * @since 2.0.0
-	 *
 	 */
 	private function __clone(): void {
 		throw new LogicException( 'Cannot clone a singleton.' );
@@ -422,8 +418,6 @@ final class Plugin {
 	 * Prevents unserialization of singleton instance.
 	 *
 	 * @throws LogicException Always throws to prevent unserialization.
-	 * @since 2.0.0
-	 *
 	 */
 	public function __wakeup(): void {
 		throw new LogicException( 'Cannot unserialize a singleton.' );

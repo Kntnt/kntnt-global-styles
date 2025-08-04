@@ -3,7 +3,7 @@
  * Plugin Name:       Kntnt Global Styles
  * Plugin URI:        https://github.com/Kntnt/kntnt-global-styles
  * Description:       Manages a global CSS file editable in the block editor.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Thomas Barregren
  * Author URI:        https://www.kntnt.com/
  * License:           GPL-2.0-or-later
@@ -19,15 +19,15 @@ declare( strict_types = 1 );
 namespace Kntnt\Global_Styles;
 
 // Prevent direct file access.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-// Register the autoloader for the plugin's classes.
+// Load the autoloader for plugin classes
 require_once __DIR__ . '/autoloader.php';
 
-// Set the plugin file path for the Plugin class to use.
+// Provide the main plugin file path to the Plugin class
 Plugin::set_plugin_file( __FILE__ );
 
-// Initialize the plugin.
+// Bootstrap the plugin
 Plugin::get_instance();
