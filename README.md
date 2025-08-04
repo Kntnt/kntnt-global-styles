@@ -354,9 +354,9 @@ If you are not familiar with Git, please create a new ticket on the plugin's iss
 
 ## Changelog
 
-## 1.1.0
+### 1.1.0
 
-### New Features
+#### New Features
 
 - **CSS Class Selector**: Completely new interface that replaces WordPress default "Additional CSS class(es)" field with an intelligent dropdown selector
 - **@hint Annotation System**: Use `@hint classname | description` in CSS comments to make classes available in the dropdown selector
@@ -368,14 +368,14 @@ If you are not familiar with Git, please create a new ticket on the plugin's iss
 - **Draft System**: CSS changes are now previewed instantly in the editor, with permanent saving when the document is saved
 - **Enhanced Live Preview**: Improved CSS injection system that works reliably across all editor iframes and contexts
 
-### User Experience Improvements
+#### User Experience Improvements
 
 - **Redesigned CSS Editor Modal**: Larger, more user-friendly interface optimized for CSS editing
 - **Intelligent Class Suggestions**: Dropdown shows available classes with descriptions for easier selection
 - **Better Error Handling**: React Error Boundary prevents editor crashes when plugin encounters errors
 - **Improved Accessibility**: Enhanced keyboard navigation and screen reader support
 
-### Developer Features
+#### Developer Features
 
 - **New Filters**:
     - `kntnt-global-styles-hints`: Modify available CSS class hints programmatically
@@ -383,28 +383,28 @@ If you are not familiar with Git, please create a new ticket on the plugin's iss
 - **Enhanced Architecture**: Better separation of concerns with specialized components
 - **Improved Build System**: More efficient webpack configuration with CSS extraction to dedicated directory
 
-### Technical Improvements
+#### Technical Improvements
 
 - **Better Asset Organization**: CSS and JavaScript files now organized in separate directories (`css/`, `js/`)
 - **Translation Ready**: Complete internationalization support with generated `.pot` file
 - **Performance Optimizations**: More efficient CSS injection and file handling
 - **Code Quality**: Enhanced error handling, better TypeScript-like patterns with enums
 
-### Bug Fixes
+#### Bug Fixes
 
 - Fixed CSS injection timing issues in block editor iframes
 - Improved reliability of live preview across different editor contexts
 - Better handling of upload directory permissions and file system operations
 - Enhanced nonce validation and security measures
 
-### Internal Changes
+#### Internal Changes
 
 - Refactored plugin architecture for better maintainability
 - Consolidated CSS annotation parsing (moved from separate Integrator class to Editor class)
 - Enhanced AJAX handling with standardized error codes
 - Improved singleton pattern implementation with better error handling
 
-## 1.0.0
+### 1.0.0
 
 - Initial release
 - Complete rewrite and modernization of [Kntnt Style Editor](https://github.com/Kntnt/kntnt-style-editor)
