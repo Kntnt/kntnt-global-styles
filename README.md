@@ -354,6 +354,14 @@ If you are not familiar with Git, please create a new ticket on the plugin's iss
 
 ## Changelog
 
+### 1.1.1
+
+#### Bug Fixes
+
+- Fixed empty CSS not being preserved when clearing the Global Style Editor
+- Corrected unsaved changes warnings to only appear when appropriate
+- Improved draft CSS persistence between editor sessions
+
 ### 1.1.0
 
 #### New Features

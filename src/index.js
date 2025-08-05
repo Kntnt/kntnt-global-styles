@@ -46,9 +46,7 @@ const initializeDraftPersistence = () => {
       // Detect when a save operation completes (but not autosave)
       if (wasRecentlySaving && !isSaving && !isAutoSaving) {
         // Check if we have draft CSS that differs from saved CSS
-        if (window.kntnt_global_styles_draft &&
-          window.kntnt_global_styles_draft !== window.kntnt_global_styles_data?.css_content) {
-
+        if (window.kntnt_global_styles_draft !== undefined && window.kntnt_global_styles_draft !== window.kntnt_global_styles_data?.css_content) {
           persistDraftCSS()
         }
       }
@@ -73,7 +71,7 @@ const persistDraftCSS = async () => {
     const formData = new FormData()
     formData.append('action', 'kntnt_global_styles_save_css')
     formData.append('nonce', window.kntnt_global_styles_data?.nonce || '')
-    formData.append('css_content', window.kntnt_global_styles_draft)
+    formData.append('css_content', window.kntnt_global_styles_draft || '')
     formData.append('persist', 'true') // Flag for permanent storage
 
     // Send the save request to WordPress

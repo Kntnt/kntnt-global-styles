@@ -3,7 +3,7 @@
  * Plugin Name:       Kntnt Global Styles
  * Plugin URI:        https://github.com/Kntnt/kntnt-global-styles
  * Description:       Manages a global CSS file editable in the block editor.
- * Version:           1.1.0
+ * Version:           1.1.1
  * Author:            Thomas Barregren
  * Author URI:        https://www.kntnt.com/
  * License:           GPL-2.0-or-later

@@ -17,18 +17,21 @@ import { __ } from '@wordpress/i18n'
  */
 export const CSSEditorModal = ({ isOpen, onClose, onSave }) => {
   const [globalCss, setGlobalCss] = useState('')
+  const [initialCss, setInitialCss] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [notice, setNotice] = useState(null)
 
-  // Initialize CSS content when modal opens
+// Initialize CSS content when modal opens
   useEffect(() => {
     if (isOpen) {
       const persistedCss = window.kntnt_global_styles_data?.css_content || ''
-      const currentDraft = window.kntnt_global_styles_draft || persistedCss
+      // Check if draft exists (not undefined), use it even if empty string
+      const currentDraft = window.kntnt_global_styles_draft !== undefined ? window.kntnt_global_styles_draft : persistedCss
 
       setGlobalCss(currentDraft)
-      setHasUnsavedChanges(currentDraft.trim() !== persistedCss.trim())
+      setInitialCss(currentDraft)  // Store what we loaded
+      setHasUnsavedChanges(false)  // No changes yet when just opened
     }
   }, [isOpen])
 
@@ -42,8 +45,8 @@ export const CSSEditorModal = ({ isOpen, onClose, onSave }) => {
    */
   const handleCssChange = (css) => {
     setGlobalCss(css)
-    const persistedCss = window.kntnt_global_styles_data?.css_content || ''
-    setHasUnsavedChanges(css.trim() !== persistedCss.trim())
+    // Compare with what was initially loaded, not with persisted
+    setHasUnsavedChanges(css.trim() !== initialCss.trim())
 
     // Store draft for persistence when document is saved
     window.kntnt_global_styles_draft = css
@@ -89,6 +92,10 @@ export const CSSEditorModal = ({ isOpen, onClose, onSave }) => {
       if (onSave) {
         onSave(globalCss, hints)
       }
+
+      // Update initial state since user has confirmed these changes
+      setInitialCss(globalCss)
+      setHasUnsavedChanges(false)
 
       onClose()
     } catch (error) {
@@ -144,10 +151,12 @@ export const CSSEditorModal = ({ isOpen, onClose, onSave }) => {
       if (!confirmClose) {
         return // User cancelled the close action
       }
+
+      // Restore draft to what was initially loaded (discard uncommitted changes)
+      window.kntnt_global_styles_draft = initialCss
     }
 
-    // Clean up draft storage and close modal
-    delete window.kntnt_global_styles_draft
+    // Don't delete draft - it should persist between modal opens
     setNotice(null)
     onClose()
   }
